@@ -4,7 +4,6 @@ import sympy as sp
 
 app = Flask(__name__)
 
-
 def newton_method(func, d_func, initial_guess, max_iterations=100, tolerance=1e-7):
     x_n = initial_guess
     for iteration in range(max_iterations):
@@ -32,11 +31,20 @@ def newton_method(func, d_func, initial_guess, max_iterations=100, tolerance=1e-
 
     return None, max_iterations
 
+def round_result(result, rounding_type, rounding_value):
+    """Round the result based on the rounding type and value."""
+    if rounding_type == "dp":  # Decimal Places
+        return round(result, rounding_value)
+    elif rounding_type == "sf":  # Significant Figures
+        if result == 0:
+            return 0
+        else:
+            return round(result, rounding_value - int(np.floor(np.log10(abs(result)))) - 1)
+    return result  # No rounding
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/calculate', methods=['POST'])
 def calculate():
@@ -45,6 +53,8 @@ def calculate():
     initial_guess = float(data['initial_guess'])
     max_iterations = int(data['max_iterations'])
     tolerance = float(data['tolerance'])
+    rounding_type = data.get('rounding_type', 'none')  # Default to 'none'
+    rounding_value = int(data.get('rounding_value', 0))  # Default to 0 for rounding value
 
     x = sp.symbols('x')
 
@@ -59,14 +69,14 @@ def calculate():
         root, result_info = newton_method(sym_func, d_func, initial_guess, max_iterations, tolerance)
 
         if root is not None:
-            return jsonify({'result': f'Root found: {root} in {result_info} iterations.', 'derivative': str(d_func)})
+            # Apply rounding if necessary
+            rounded_root = round_result(root, rounding_type, rounding_value)
+            return jsonify({'result': f'Root found: {rounded_root} in {result_info} iterations.', 'derivative': d_func_str})
         else:
-            return jsonify(
-                {'result': f'Maximum iterations reached. No solution found. {result_info}', 'derivative': str(d_func)})
+            return jsonify({'result': f'Maximum iterations reached. No solution found. {result_info}', 'derivative': d_func_str})
 
     except Exception as e:
         return jsonify({'result': f'Error parsing function: {str(e)}', 'derivative': ''})
-
 
 if __name__ == '__main__':
     app.run(debug=True)

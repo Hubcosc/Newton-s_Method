@@ -69,7 +69,7 @@
             margin: 10px 0 5px;
         }
 
-        input[type="text"], input[type="number"] {
+        input[type="text"], input[type="number"], select {
             width: calc(100% - 22px);
             padding: 10px;
             margin: 10px 0;
@@ -78,7 +78,7 @@
             transition: border-color 0.3s;
         }
 
-        input[type="text"]:focus, input[type="number"]:focus {
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
             border-color: #28a745;
             outline: none;
         }
@@ -221,6 +221,16 @@
     <label for="tolerance">📏 **Tolerance Level:**</label>
     <input type="number" id="tolerance" step="any" value="1e-7">
 
+    <label for="roundingType">🔢 **Rounding Type:**</label>
+    <select id="roundingType">
+        <option value="none">None</option>
+        <option value="dp">Decimal Places (dp)</option>
+        <option value="sf">Significant Figures (sf)</option>
+    </select>
+
+    <label for="roundingValue">🧮 **Rounding Value:**</label>
+    <input type="number" id="roundingValue" value="2" min="0">
+
     <button onclick="calculateRoot()">🔍 **Calculate Root**</button>
 
     <div class="result" id="result"></div>
@@ -262,6 +272,8 @@
         const initialGuess = parseFloat(document.getElementById("initialGuess").value);
         const maxIterations = parseInt(document.getElementById("maxIterations").value);
         const tolerance = parseFloat(document.getElementById("tolerance").value);
+        const roundingType = document.getElementById("roundingType").value;
+        const roundingValue = parseInt(document.getElementById("roundingValue").value);
 
         // Input validation
         if (!funcInput) {
@@ -284,6 +296,11 @@
             return;
         }
 
+        if (roundingType !== "none" && (isNaN(roundingValue) || roundingValue < 0)) {
+            showModal("Please enter a valid rounding value.");
+            return;
+        }
+
         fetch('/calculate', {
             method: 'POST',
             headers: {
@@ -293,14 +310,18 @@
                 function: funcInput,
                 initial_guess: initialGuess,
                 max_iterations: maxIterations,
-                tolerance: tolerance
+                tolerance: tolerance,
+                rounding_type: roundingType,
+                rounding_value: roundingValue
             })
         })
         .then(response => response.json())
         .then(data => {
             const resultDiv = document.getElementById("result");
+            const derivativeInput = document.getElementById("derivative");
+
             resultDiv.innerText = data.result;
-            document.getElementById("derivative").value = data.derivative;
+            derivativeInput.value = data.derivative;
 
             if (data.result.toLowerCase().includes("error")) {
                 resultDiv.classList.add("error");
