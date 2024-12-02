@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newton's Method GUI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
+            background-size: 200% 200%;
+            animation: gradient 15s ease infinite;
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+            animation: bounce 1s;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        label {
+            font-weight: bold;
+            color: #333;
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-color: #28a745;
+            outline: none;
+        }
+
+        input[readonly] {
+            background-color: #f0f0f0;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+
+        .result {
+            margin-top: 10px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .history {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            border-bottom: 1px solid #ccc;
+            padding: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item.success {
+            color: green;
+        }
+
+        .history-item.error {
+            color: red;
+        }
+
+        .clear-history {
+            background-color: #dc3545;
+        }
+
+        .clear-history:hover {
+            background-color: #c82333;
+        }
+
+        .timestamp {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .icon {
+            margin-right: 10px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 100px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: auto;
+            padding: 15px;
+            border: 1px solid #888;
+            width: 300px; /* Smaller width */
+            border-radius: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Newton's Method Calculator</h1>
+    <label for="function">🔍 **Enter Your Function f(x):**</label>
+    <input type="text" id="function" placeholder="e.g., cos(x) - x * exp(x)">
+
+    <label for="derivative">🧮 **Calculated Derivative f'(x):**</label>
+    <input type="text" id="derivative" placeholder="Automatically calculated" readonly>
+
+    <label for="initialGuess">🌟 **Initial Guess (x₀):**</label>
+    <input type="number" id="initialGuess" step="any">
+
+    <label for="maxIterations">🔄 **Maximum Iterations:**</label>
+    <input type="number" id="maxIterations" value="100">
+
+    <label for="tolerance">📏 **Tolerance Level:**</label>
+    <input type="number" id="tolerance" step="any" value="1e-7">
+
+    <button onclick="calculateRoot()">🔍 **Calculate Root**</button>
+
+    <div class="result" id="result"></div>
+
+    <h2>📜 **Calculation History**</h2>
+    <div class="history" id="history"></div>
+    <button class="clear-history" onclick="clearHistory()">🗑️ **Clear History**</button>
+</div>
+
+<!-- The Modal -->
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="modalClose">&times;</span>
+        <p id="modalMessage"></p>
+    </div>
+</div>
+
+<script>
+    function showModal(message) {
+        const modal = document.getElementById("myModal");
+        const modalMessage = document.getElementById("modalMessage");
+        modalMessage.innerText = message;
+        modal.style.display = "block";
+    }
+
+    document.getElementById("modalClose").onclick = function() {
+        document.getElementById("myModal").style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById("myModal");
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function calculateRoot() {
+        const funcInput = document.getElementById("function").value.trim();
+        const initialGuess = parseFloat(document.getElementById("initialGuess").value);
+        const maxIterations = parseInt(document.getElementById("maxIterations").value);
+        const tolerance = parseFloat(document.getElementById("tolerance").value);
+
+        // Input validation
+        if (!funcInput) {
+            showModal("Please enter a valid function f(x).");
+            return;
+        }
+
+        if (isNaN(initialGuess)) {
+            showModal("Please enter a valid initial guess (x₀).");
+            return;
+        }
+
+        if (isNaN(maxIterations) || maxIterations <= 0) {
+            showModal("Please enter a valid number of maximum iterations (must be greater than 0).");
+            return;
+        }
+
+        if (isNaN(tolerance) || tolerance <= 0) {
+            showModal("Please enter a valid tolerance level (must be greater than 0).");
+            return;
+        }
+
+        fetch('/calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                function: funcInput,
+                initial_guess: initialGuess,
+                max_iterations: maxIterations,
+                tolerance: tolerance
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerText = data.result;
+            document.getElementById("derivative").value = data.derivative;
+
+            if (data.result.toLowerCase().includes("error")) {
+                resultDiv.classList.add("error");
+                addToHistory(funcInput, data.result, true);
+            } else {
+                resultDiv.classList.remove("error");
+                addToHistory(funcInput, data.result, false);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerText = "An unexpected error occurred. Please try again.";
+            resultDiv.classList.add("error");
+        });
+    }
+
+    function addToHistory(func, result, isError) {
+        const historyDiv = document.getElementById("history");
+        const item = document.createElement("div");
+        item.className = `history-item ${isError ? 'error' : 'success'}`;
+
+        const timestamp = new Date().toLocaleString();
+        const icon = isError ? '❌' : '✅';
+        item.innerHTML = `<span class="icon">${icon}</span> f(x): ${func} => Result: ${result}<span class="timestamp">${timestamp}</span>`;
+
+        historyDiv.appendChild(item);
+    }
+
+    function clearHistory() {
+        const historyDiv = document.getElementById("history");
+        historyDiv.innerHTML = ''; // Clear the history
+    }
+</script>
+
+</body>
+</html>
