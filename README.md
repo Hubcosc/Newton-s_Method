@@ -1,4 +1,55 @@
 # Newton's Method
+# Newton's Method Flask Application
+
+## Requirements
+
+To run this Flask application, you need to have the following Python packages installed:
+
+- Flask
+- NumPy
+- SymPy
+
+You can install these packages using pip. It is recommended to create a virtual environment before installing the dependencies. To set up your environment, you can follow these steps:
+
+### Setup Instructions
+
+1. **Create a virtual environment** (optional but recommended):
+   ```bash
+   python -m venv venv
+   ```
+   
+2. **Activate the virtual environment**:
+   - On Windows:
+     ```bash
+     venv\Scripts\activate
+     ```
+   - On macOS/Linux:
+     ```bash
+     source venv/bin/activate
+     ```
+
+3. **Install the required packages**:
+   ```bash
+   pip install Flask numpy sympy
+   ```
+
+4. **Run the application**:
+   ```bash
+   python app.py
+   ```
+
+5. **Access the application**:
+   Open your web browser and go to `http://127.0.0.1:5000/`.
+
+## Dependencies
+
+- **Flask**: A micro web framework for Python.
+- **NumPy**: A library for numerical computing in Python.
+- **SymPy**: A library for symbolic mathematics in Python.
+
+Make sure you have Python 3.6 or higher installed on your system.
+
+-----------------------------------------------------------------------
 
 ## Description
 This project is a group assignment focused on implementing **Newton's Method** for numerical analysis. It was developed as part of a course requirement under the guidance of our instructor.
